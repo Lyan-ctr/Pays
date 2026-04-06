@@ -3,6 +3,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,13 +12,17 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
@@ -28,10 +33,11 @@ data class Country(
     val name: String,
     val capital: String,
     val code: String,
-    val flagRes: Int
+    val flagRes: Int,
+    val description: String // Ajout pour l'amélioration
 )
 // classe du tp bonus
- data class Topic(
+data class Topic(
     val name: String,
     val courseCount: Int,
     val imageRes: Int
@@ -57,11 +63,11 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun CountryList() {
     val countries = listOf(
-        Country("RD Congo", "Kinshasa", "CD", R.drawable.rdc),
-        Country("France", "Paris", "FR", R.drawable.france),
-        Country("Canada", "Ottawa", "CA", R.drawable.canada),
-        Country("Angleterre", "Londres", "UK", R.drawable.engleterre),
-        Country("Ukraine", "Kyiv", "UA", R.drawable.ukraine)
+        Country("RD Congo", "Kinshasa", "CD", R.drawable.rdc, "La RDC est le plus grand pays d'Afrique francophone."),
+        Country("France", "Paris", "FR", R.drawable.france, "La France est connue pour sa culture et sa tour Eiffel."),
+        Country("Canada", "Ottawa", "CA", R.drawable.canada, "Le Canada est célèbre pour ses paysages et son sirop d'érable."),
+        Country("Angleterre", "Londres", "UK", R.drawable.engleterre, "L'Angleterre a une grande histoire royale."),
+        Country("Ukraine", "Kyiv", "UA", R.drawable.ukraine, "L'Ukraine est connue pour ses plaines et ses cathédrales.")
     )
 
     LazyColumn(
@@ -77,32 +83,57 @@ fun CountryList() {
 
 @Composable
 fun CountryItem(country: Country) {
+    // Variable pour savoir si on a cliqué sur la flèche
+    var expanded by remember { mutableStateOf(false) }
+
     Card(
-        modifier = Modifier.fillMaxWidth().padding(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .animateContentSize(), // Pour que l'ouverture soit fluide
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // IMAGE Drapeau
-            Image(
-                painter = painterResource(id = country.flagRes),
-                contentDescription = null,
-                modifier = Modifier.size(60.dp).clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
-            )
+        Column {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // IMAGE Drapeau
+                Image(
+                    painter = painterResource(id = country.flagRes),
+                    contentDescription = null,
+                    modifier = Modifier.size(60.dp).clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
 
-            Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(16.dp))
 
-            // Nom + Capitale et Code
-            Column {
-                // Le Nom du pays
-                Text(text = country.name, style = MaterialTheme.typography.titleLarge)
+                // Nom + Capitale et Code
+                Column(modifier = Modifier.weight(1f)) {
+                    // Le Nom du pays
+                    Text(text = country.name, style = MaterialTheme.typography.titleLarge)
 
-                //  On appelle les deux variables
+                    //  On appelle les deux variables
+                    Text(
+                        text = "Capitale : ${country.capital} | Code : ${country.code}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                // LA PETITE FLECHE À DROITE
+                IconButton(onClick = { expanded = !expanded }) {
+                    Icon(
+                        imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                        contentDescription = null
+                    )
+                }
+            }
+
+            // Affichage de la description quand on clique sur la flèche
+            if (expanded) {
                 Text(
-                    text = "Capitale : ${country.capital} | Code : ${country.code}",
+                    text = country.description,
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
